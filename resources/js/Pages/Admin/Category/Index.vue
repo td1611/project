@@ -16,22 +16,6 @@ const currentPage = ref(1);
 const totalPages = ref(1);
 
 // getCategories
-// const fetchCategories = async () => {
-//     try {
-//         const response = await axios.get(route('admin.categories.getList'));
-//         categories.value = response.data.data;
-//         console.log(response.data.meta);
-
-
-//     } catch (error) {
-//         ElMessage({
-//             showClose: true,
-//             message: 'Error fetching categories' + error,
-//             type: 'error',
-//         })
-//     }
-// };
-
 
 const fetchCategories = async () => {
     try {
@@ -225,7 +209,6 @@ onMounted(() => {
                                         </tr>
                                     </tbody>
                                     <ModalComfirm v-if="showModal" @close="closeModal" @accept="deleteCategory">
-
                                         <template #title>
                                             Delte Category {{ selectedCategoryTitle }}
                                         </template>
@@ -251,11 +234,11 @@ onMounted(() => {
                                         <span class="sr-only">Previous</span>
                                     </button>
 
-                                    <!-- Hiển thị các nút trang -->
                                     <button v-for="page in totalPages" :key="page" @click="goToPage(page)"
                                         :class="{ 'bg-red-300': currentPage === page, }"
                                         class="min-w-[40px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2.5 text-sm rounded-full disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 bg-gray-100"
-                                        aria-current="page">{{ page }}</button>
+                                        aria-current="page">{{ page }}
+                                    </button>
 
                                     <button @click="nextPage" :disabled="!canGoNext"
                                         class="p-2.5 inline-flex items-center gap-x-2 text-sm rounded-full text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
@@ -263,24 +246,6 @@ onMounted(() => {
                                         <span aria-hidden="true">»</span>
                                     </button>
                                 </nav>
-
-                                <!-- <nav class="flex items-center space-x-1">
-                                    <button type="button"
-                                        class="p-2.5 inline-flex items-center gap-x-2 text-sm rounded-full text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
-                                        <span aria-hidden="true">«</span>
-                                        <span class="sr-only">Previous</span>
-                                    </button>
-                                    <button type="button"
-                                        class="min-w-[40px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2.5 text-sm rounded-full disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10"
-                                        aria-current="page">1</button>
-                                 
-                               
-                                    <button type="button"
-                                        class="p-2.5 inline-flex items-center gap-x-2 text-sm rounded-full text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
-                                        <span class="sr-only">Next</span>
-                                        <span aria-hidden="true">»</span>
-                                    </button>
-                                </nav> -->
                             </div>
                         </div>
                     </div>

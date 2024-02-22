@@ -11,6 +11,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
+
 class CategoryController extends Controller
 {
     protected $responseHelper, $category;
@@ -26,13 +27,15 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
+        // return User::filter($request->all())->get();
         return Inertia::render('Admin/Category/Index');
     }
 
     function getCategories(Request $request)
     {
         $limit = $request->limit ? $request->limit : 10;
-        $categories =  $this->category->latest('id')->paginate($limit);
+        // $categories =  $this->category->latest('id')->paginate($limit);
+        $categories = Category::filter($request->all())->latest('id')->paginate($limit)
         return  CategoryResource::collection($categories)
             ->response();
     }
@@ -107,7 +110,7 @@ class CategoryController extends Controller
             $validatedData['slug'] = Str::slug($validatedData['title']);
             // update
             $category->update($validatedData);
-        
+
             return  $this->responseHelper->sendSuccessResponse(CategoryResource::make($category), __('Update Success'));
         } catch (\Exception $e) {
             return  $this->responseHelper->sendErrorResponse(__('Something went wrong.'), $e->getMessage());
