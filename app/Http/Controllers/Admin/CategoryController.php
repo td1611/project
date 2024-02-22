@@ -24,16 +24,15 @@ class CategoryController extends Controller
      * Display a listing of the resource.
      */
 
-    public function index()
+    public function index(Request $request)
     {
-
         return Inertia::render('Admin/Category/Index');
     }
 
     function getCategories(Request $request)
     {
         $limit = $request->limit ? $request->limit : 10;
-        $categories =  $this->category->latest('id')->paginate(8);
+        $categories =  $this->category->latest('id')->paginate($limit);
         return  CategoryResource::collection($categories)
             ->response();
     }

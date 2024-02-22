@@ -24,6 +24,7 @@ async function submit() {
             title: 'Success',
             message: response.data.message,
             type: 'success',
+            grouping: true
         })
 
     } catch (error) {

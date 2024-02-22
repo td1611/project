@@ -19,6 +19,14 @@
 <script setup>
 import { FwbButton, FwbModal } from 'flowbite-vue'
 
+// const emits = defineEmits(['accept', 'close']);
 
+// const accept = () => {
+//     emits('accept');
+// };
+
+// const close = () => {
+//     emits('close');
+// };
 
 </script>
