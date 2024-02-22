@@ -5,6 +5,8 @@ import ModalComfirm from '@/Components/ModalComfirm.vue';
 import { ref, onMounted } from 'vue';
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import { FwbButton } from 'flowbite-vue'
+
 
 // fetch data
 const categories = ref([])
@@ -26,31 +28,44 @@ const fetchCategories = async () => {
 
 // detele
 
-const deleteCategory = async (categoryId) => {
+const showModal = ref(false);
+const selectedCategoryId = ref(null);
+const selectedCategoryTitle = ref(null);
 
-try {
-    const response = await axios.delete(route('admin.categories.destroy', categoryId));
-    console.log(response.data);
-
-    ElMessage({
-        showClose: true,
-        message: 'Category deleted successfully',
-        type: 'success',
-    });
-
-    fetchCategories();
-} catch (error) {
-    console.log(error);
-    ElMessage({
-        showClose: true,
-        message: 'Error deleting category' + error.response.data.message,
-        type: 'error',
-    });
-}
-
+const setSelectedCategoryIdAndShowModal = (categoryId, categoryTitle) => {
+    showModal.value = true;
+    selectedCategoryId.value = categoryId;
+    selectedCategoryTitle.value = categoryTitle;
 };
 
 
+
+const deleteCategory = async () => {
+
+    try {
+        const response = await axios.delete(route('admin.categories.destroy', selectedCategoryId.value));
+        console.log(response.data);
+        ElMessage({
+            showClose: true,
+            message: 'Category deleted successfully',
+            type: 'success',
+        });
+
+        fetchCategories();
+    } catch (error) {
+        console.log(error);
+        ElMessage({
+            showClose: true,
+            message: 'Error deleting category' + error.response.data.message,
+            type: 'error',
+        });
+    }
+
+};
+const acceptDelete = () => {
+    deleteCategory()
+    showModal.value = false;
+};
 
 onMounted(() => {
     fetchCategories();
@@ -141,7 +156,10 @@ onMounted(() => {
                                                 <Link :href="route('admin.categories.edit', category.id)"> <el-button
                                                     type="primary">Edit</el-button> </Link>
 
-                                                <el-button @click="deleteCategory(category.id)">Xóa</el-button>
+                                                <!-- <el-button @click="deleteCategory(category.id)">Xóa</el-button> -->
+                                                <el-button
+                                                    @click="setSelectedCategoryIdAndShowModal(category.id, category.title)">Delete
+                                                    Category</el-button>
 
                                             </td>
 
@@ -150,12 +168,24 @@ onMounted(() => {
 
                                 </table>
 
-                                <!-- <ModalConfirm :showModal="showModal" :message="modalMessage" @confirm="confirmDelete"
-                                    @cancel="cancelDelete">
 
-                                </ModalConfirm> -->
-                             
+                                <ModalComfirm v-if="showModal" @close="showModal = false" @accept="deleteCategory"
+                                    :categoryId="selectedCategoryId" >
 
+                                    <template #title>
+                                        Delte Category {{ selectedCategoryTitle }}
+                                    </template>
+                                    <template #content>
+                                        Are you ssure
+                                    </template>
+                                    <template #footer>
+                                        <fwb-button color="alternative" class="mr-3" @click="showModal = false">
+                                            Decline
+                                        </fwb-button>
+
+                                        <fwb-button color="pink" @click="acceptDelete()">Accept</fwb-button>
+                                    </template>
+                                </ModalComfirm>
 
                                 <!-- <MyComponent @some-event="callback" /> -->
                             </div>
