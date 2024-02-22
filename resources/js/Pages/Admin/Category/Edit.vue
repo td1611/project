@@ -3,46 +3,64 @@ import AdminLayout from "@/Layouts/AdminLayout.vue";
 import InputError from "@/Components/InputError.vue";
 import TextInput from "@/Components/TextInput.vue";
 import InputLabel from "@/Components/InputLabel.vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { Head, useForm, } from "@inertiajs/vue3";
 import { ElMessage, ElNotification } from 'element-plus'
 import axios from "axios";
 
+
+import { router } from '@inertiajs/vue3'
+
+
 const props = defineProps({
-    categories: Object,
+    category: {
+        type: Object,
+        default: () => ({}),
+    },
 });
 
+
+
 const form = useForm({
-    title: "",
+    title: props.category.data.title,
 });
+
 
 async function submit() {
     try {
-        const response = await axios.post(route('admin.categories.store'), form);
-        console.log(response);
-        form.reset();
+        // const response = await axios.put(route('admin.categories.update', { category: props.category.data.id }), form);
+        const response = await axios.put(route('admin.categories.update', props.category.data.id), form);
+        console.log(response.data);
+
         ElNotification({
             title: 'Success',
             message: response.data.message,
             type: 'success',
         })
+        const indexUrl = route('admin.categories.index');
+        router.replace(indexUrl);
 
     } catch (error) {
-
+        console.log(error);
+        const errorMessage = error.response?.data?.message || 'Something went wrong.';
         ElMessage({
             showClose: true,
-            message: error.response.data.message,
+            message: errorMessage,
             type: 'error',
             grouping: true,
         })
     }
 }
+
+
+
 </script>
 
 <template>
-    <AdminLayout>
+    <AdminLayout title="Category Edit">
+
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Create Category
+                Edit Category
             </h2>
         </template>
 
@@ -50,14 +68,14 @@ async function submit() {
             <form class="mt-14" @submit.prevent="submit">
                 <div class="mb-5">
                     <InputLabel for="title" value="Title" />
-                    <TextInput id="title" type="text" class="mt-1 block w-full" v-model="form.title" autofocus />
+                    <TextInput id="title" type="text" class="mt-1 block w-full" v-model="form.title" autofocus
+                        name="title" />
                     <InputError class="mt-2" :message="form.errors.title" />
-                    {{ }}
                 </div>
 
-                <button type="submit"
+                <button type="submit" :disabled="form.processing"
                     class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    ADD
+                    Edit
                 </button>
             </form>
         </template>

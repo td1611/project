@@ -9,7 +9,8 @@ use App\Http\Requests\CategoryRequest;
 use App\Helpers\ResponseHelper;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
-
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 class CategoryController extends Controller
 {
     protected $responseHelper, $category;
@@ -25,13 +26,14 @@ class CategoryController extends Controller
 
     public function index()
     {
+
         return Inertia::render('Admin/Category/Index');
     }
 
     function getCategories(Request $request)
     {
         $limit = $request->limit ? $request->limit : 10;
-        $categories =  $this->category->latest('id')->paginate($limit);
+        $categories =  $this->category->latest('id')->paginate(8);
         return  CategoryResource::collection($categories)
             ->response();
     }
@@ -52,7 +54,7 @@ class CategoryController extends Controller
     {
         $validatedData = $request->validated();
         try {
-            $validatedData['slug'] = $validatedData['title'];
+            $validatedData['slug'] = Str::slug($validatedData['title']);
             // store
             $category = $this->category->create($validatedData);
             return $this->responseHelper->sendSuccessResponse(CategoryResource::make($category), ('Success Create'));
@@ -66,7 +68,13 @@ class CategoryController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $category = $this->category->findOrFail($id);
+            $data = new CategoryResource($category);
+            return $this->responseHelper->sendSuccessResponse($data,);
+        } catch (ModelNotFoundException $e) {
+            return $this->responseHelper->sendErrorResponse(('Data not found'), $e->getMessage());
+        }
     }
 
     /**
@@ -74,7 +82,16 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        try {
+            $category = $this->category->findOrFail($id);
+            $category = new CategoryResource($category);
+            return Inertia::render('Admin/Category/Edit', [
+                'category' => $category
+            ]);
+        } catch (ModelNotFoundException $e) {
+
+            return $this->responseHelper->sendErrorResponse(('Data not found'), $e->getMessage());
+        }
     }
 
     /**
@@ -82,7 +99,20 @@ class CategoryController extends Controller
      */
     public function update(CategoryRequest $request, string $id)
     {
-        //
+        $category = $this->category->find($id);
+        if (!$category) {
+            return  $this->responseHelper->sendErrorResponse(__('Data not found'), "update category error", 404);
+        }
+        $validatedData =  $request->validated();
+        try {
+            $validatedData['slug'] = Str::slug($validatedData['title']);
+            // update
+            $category->update($validatedData);
+        
+            return  $this->responseHelper->sendSuccessResponse(CategoryResource::make($category), __('Update Success'));
+        } catch (\Exception $e) {
+            return  $this->responseHelper->sendErrorResponse(__('Something went wrong.'), $e->getMessage());
+        }
     }
 
     /**
@@ -90,6 +120,12 @@ class CategoryController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $category = $this->category->findOrFail($id);
+            $category->delete();
+            $this->responseHelper->sendSuccessResponse([], ('Success Delete'));
+        } catch (ModelNotFoundException $e) {
+            return $this->responseHelper->sendErrorResponse(('Data not found'), $e->getMessage());
+        }
     }
 }

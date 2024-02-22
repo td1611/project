@@ -1,13 +1,60 @@
 
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import ModalComfirm from '@/Components/ModalComfirm.vue';
 import { ref, onMounted } from 'vue';
-const categories = ref([]);
-const searchQuery = ref('');
-const limit = ref(10);
-const currentPage = ref(1);
-const total = ref(0);
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
+// fetch data
+const categories = ref([])
+
+const fetchCategories = async () => {
+    try {
+        const response = await axios.get(route('admin.categories.getList'));
+        categories.value = response.data.data;
+        // console.log(response.data.data);
+    } catch (error) {
+        ElMessage({
+            showClose: true,
+            message: 'Error fetching categories' + error,
+            type: 'error',
+        })
+    }
+};
+
+
+// detele
+
+const deleteCategory = async (categoryId) => {
+
+try {
+    const response = await axios.delete(route('admin.categories.destroy', categoryId));
+    console.log(response.data);
+
+    ElMessage({
+        showClose: true,
+        message: 'Category deleted successfully',
+        type: 'success',
+    });
+
+    fetchCategories();
+} catch (error) {
+    console.log(error);
+    ElMessage({
+        showClose: true,
+        message: 'Error deleting category' + error.response.data.message,
+        type: 'error',
+    });
+}
+
+};
+
+
+
+onMounted(() => {
+    fetchCategories();
+})
 
 
 </script>
@@ -57,20 +104,22 @@ const total = ref(0);
                                             </th>
                                             <th scope="col"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
-                                                Name</th>
-                                            <th scope="col"
-                                                class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">Age
+
                                             </th>
                                             <th scope="col"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
-                                                Address</th>
+
+                                            </th>
+
                                             <th scope="col"
                                                 class="px-6 py-3 text-end text-xs font-medium text-gray-500 uppercase">
-                                                Action</th>
+                                                Action
+                                            </th>
                                         </tr>
                                     </thead>
+
                                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        <tr>
+                                        <tr v-for="category in categories" :key="category.id">
                                             <td class="py-3 ps-4">
                                                 <div class="flex items-center h-5">
                                                     <input id="hs-table-pagination-checkbox-1" type="checkbox"
@@ -81,23 +130,34 @@ const total = ref(0);
                                             </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800 dark:text-gray-200">
-                                                John Brown</td>
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
-                                                45</td>
-                                            <td
-                                                class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
-                                                New York No. 1 Lake Park</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
-                                                <button type="button"
-                                                    class="inline-flex items-center gap-x-2 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:pointer-events-none dark:text-blue-500 dark:hover:text-blue-400 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">Delete</button>
+                                                {{ category.title }}
                                             </td>
+                                            <td
+                                                class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
+                                                {{ category.slug }}
+                                            </td>
+
+                                            <td class="px-6 py-4 whitespace-nowrap text-end text-sm font-medium">
+                                                <Link :href="route('admin.categories.edit', category.id)"> <el-button
+                                                    type="primary">Edit</el-button> </Link>
+
+                                                <el-button @click="deleteCategory(category.id)">Xóa</el-button>
+
+                                            </td>
+
                                         </tr>
-
-
-
                                     </tbody>
+
                                 </table>
+
+                                <!-- <ModalConfirm :showModal="showModal" :message="modalMessage" @confirm="confirmDelete"
+                                    @cancel="cancelDelete">
+
+                                </ModalConfirm> -->
+                             
+
+
+                                <!-- <MyComponent @some-event="callback" /> -->
                             </div>
                             <div class="py-1 px-4">
                                 <nav class="flex items-center space-x-1">
@@ -111,8 +171,6 @@ const total = ref(0);
                                         aria-current="page">1</button>
                                     <button type="button"
                                         class="min-w-[40px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2.5 text-sm rounded-full disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10">2</button>
-                                    <button type="button"
-                                        class="min-w-[40px] flex justify-center items-center text-gray-800 hover:bg-gray-100 py-2.5 text-sm rounded-full disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10">3</button>
                                     <button type="button"
                                         class="p-2.5 inline-flex items-center gap-x-2 text-sm rounded-full text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none dark:text-white dark:hover:bg-white/10 dark:focus:outline-none dark:focus:ring-1 dark:focus:ring-gray-600">
                                         <span class="sr-only">Next</span>
