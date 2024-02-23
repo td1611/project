@@ -27,17 +27,19 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        // return User::filter($request->all())->get();
         return Inertia::render('Admin/Category/Index');
     }
 
     function getCategories(Request $request)
     {
+
         $limit = $request->limit ? $request->limit : 10;
-        // $categories =  $this->category->latest('id')->paginate($limit);
-        $categories = Category::filter($request->all())->latest('id')->paginate($limit)
-        return  CategoryResource::collection($categories)
-            ->response();
+        $categories = $this->category->filter($request->all())->latest('id')->paginate($limit);
+        if ($request->status == 'trashed') {
+            $categories  = $this->category->filter($request->all())->onlyTrashed()->latest('id')->paginate($limit);
+        }
+
+        return CategoryResource::collection($categories);
     }
 
     /**
@@ -129,5 +131,52 @@ class CategoryController extends Controller
         } catch (ModelNotFoundException $e) {
             return $this->responseHelper->sendErrorResponse(('Data not found'), $e->getMessage());
         }
+    }
+
+    /**
+     * restore 
+     */
+    function restore($id)
+    {
+        try {
+            $category = $this->findOnlyTrash($id);
+            // restore
+            $category->restore();
+            return response()->json([
+                'message' => 'Restored Successfully',
+                'status' => 200,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 404,
+            ]);
+        }
+    }
+    function forceDelete($id)
+    {
+        try {
+            $category = $this->findOnlyTrash($id);
+            // forceDelete
+            $category->forceDelete();
+            return response()->json([
+                'message' => 'Data permanently deleted Successfully',
+                'status' => 200,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'status' => 404,
+            ]);
+        }
+    }
+
+    function findOnlyTrash($id)
+    {
+        $category = $this->category->onlyTrashed()->find($id);
+        if (!$category) {
+            throw new ModelNotFoundException('Data not found ');
+        }
+        return $category;
     }
 }

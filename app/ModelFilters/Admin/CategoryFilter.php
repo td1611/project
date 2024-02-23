@@ -15,8 +15,9 @@ class CategoryFilter extends ModelFilter
     public $relations = [];
 
 
-    public function title($title)
+    public function search($keySearch)
     {
-       return $this->whereLike('title', $title) ;
+       return $this->whereLike('title', $keySearch)->whereLike('slug', $keySearch,'or') ;
     }
+   
 }

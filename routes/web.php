@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\CategoryController;
 */
 
 Route::get('/', function () {
+
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
@@ -39,5 +40,7 @@ Route::middleware([
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('categories', CategoryController::class);
         Route::get('get-categories', [CategoryController::class, 'getCategories'])->name('categories.getList');
+        Route::post('categories/restore/{id}', [CategoryController::class, 'restore'])->name('categories.restore');
+        Route::post('categories/force-delete/{id}', [CategoryController::class, 'forceDelete'])->name('categories.forceDelete');
     });
 });
