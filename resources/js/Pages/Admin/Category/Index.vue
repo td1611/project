@@ -2,7 +2,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import ModalComfirm from '@/Components/ModalComfirm.vue';
-import { ref, onMounted, watchEffect, computed } from 'vue';
+import { ref, onMounted, watchEffect, computed, watch } from 'vue';
 import axios from 'axios'
 import { Delete, Edit, } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -13,27 +13,19 @@ import { initFlowbite } from 'flowbite'
 const categories = ref([])
 const showData = ref(false);
 
+
 // trash
 const showTrash = ref(false);
+const toggleShowTrash = () => {
+    showTrash.value = !showTrash.value;
+    fetchCategories();
+};
 
-
-
-// const toggleShowTrash = () => {
-//     showTrash.value = !showTrash.value;
-//     fetchCategories();
-// };
-
-
-
-// paginate
-const currentPage = ref(1);
-const totalPages = ref(1);
-
-// search data
-
-const searchKey = ref('');
-let debounceTimeout = null;
-
+// sorting
+const sorting = ref({
+    column: null,
+    order: 'desc',
+});
 
 const fetchCategories = async () => {
     try {
@@ -43,6 +35,8 @@ const fetchCategories = async () => {
                 limit: 10,
                 search: searchKey.value,
                 status: showTrash.value ? 'trashed' : '',
+                sortColumn: sorting.value.column,
+                order: sorting.value.order,
             },
         });
         // console.log(response.data.meta);
@@ -60,17 +54,47 @@ const fetchCategories = async () => {
             showClose: true,
             message: 'Error fetching categories' + error,
             type: 'error',
+            grouping: true,
         });
     }
 };
 
-const toggleShowTrash = () => {
-    showTrash.value = !showTrash.value;
+
+const handleSort = (column) => {
+    if (sorting.value.column === column) {
+        sorting.value.order = sorting.value.order === 'asc' ? 'desc' : 'asc';
+        // console.log(sorting.value.order)
+    } else {
+        sorting.value.column = column;
+        sorting.value.order = 'desc';
+    }
+
     fetchCategories();
 };
 
 
+
+// search data
+const searchKey = ref('');
+let debounceTimeout = null;
+
+const debounceSearch = () => {
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+        fetchCategories();
+    }, 1000);
+};
+
+const onSearch = () => {
+    currentPage.value = 1;
+    debounceSearch();
+};
+// end search data
+
 // paginate
+const currentPage = ref(1);
+const totalPages = ref(1);
+
 const prevPage = () => {
     if (currentPage.value > 1) {
         currentPage.value--;
@@ -97,26 +121,8 @@ const canGoNext = computed(() => currentPage.value < totalPages.value);
 // end paginate
 
 
-watchEffect(() => {
-    fetchCategories();
-});
 
-// search data
-const debounceSearch = () => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-        fetchCategories();
-    }, 1000);
-};
-
-
-
-const onSearch = () => {
-    currentPage.value = 1;
-    debounceSearch();
-
-};
-// end search data
+// watch(() => sorting.value, fetchCategories);
 
 
 // detele
@@ -137,10 +143,10 @@ const setSelectedCategoryIdAndShowModal = (categoryId, categoryTitle) => {
 const deleteCategory = async () => {
     try {
         const response = await axios.delete(route('admin.categories.destroy', selectedCategoryId.value));
-        console.log(response.data);
+        // console.log(response.data);
         ElMessage({
             showClose: true,
-            message: `Category deleted successfully ${selectedCategoryTitle.value}`,
+            message: `${response.data.message} ${selectedCategoryTitle.value}`,
             type: 'success',
             grouping: true,
         });
@@ -149,7 +155,7 @@ const deleteCategory = async () => {
         console.log(error);
         ElMessage({
             showClose: true,
-            message: `Error deleting category ${error.response.data.message}`,
+            message: `Error deleting category:  ${error.response.data.message}`,
             type: 'error',
             grouping: true,
         });
@@ -162,7 +168,7 @@ const forceDelete = async () => {
         console.log(response.data);
         ElMessage({
             showClose: true,
-            message: `Category deleted successfully ${selectedCategoryTitle.value}`,
+            message: `${response.data.message} ${selectedCategoryTitle.value}`,
             type: 'success',
             grouping: true,
         });
@@ -171,7 +177,7 @@ const forceDelete = async () => {
         console.log(error);
         ElMessage({
             showClose: true,
-            message: `Error deleting category ${error.response.data.message}`,
+            message: `Error deleting category:  ${error.response.data.message}`,
             type: 'error',
             grouping: true,
         });
@@ -193,10 +199,10 @@ const acceptForceDelete = () => {
 const restore = async (categoryId) => {
     try {
         const res = await axios.post(route('admin.categories.restore', categoryId))
-        // console.log(res.data);
+        console.log(res.data.message);
         ElMessage({
             showClose: true,
-            message: `Category restored successfully`,
+            message: res.data.message,
             type: 'success',
             grouping: true,
         });
@@ -212,6 +218,9 @@ const restore = async (categoryId) => {
     }
 };
 
+watchEffect(() => {
+    fetchCategories();
+});
 
 
 onMounted(() => {
@@ -291,24 +300,31 @@ onMounted(() => {
                                                         class="sr-only">Checkbox</label>
                                                 </div>
                                             </th>
-                                            <th scope="col"
+                                            <th scope="col" @click="handleSort('title')"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+                                                <span v-if="sorting.column === 'title'">{{ sorting.order === 'asc' ? '▲' :
+                                                    '▼' }}</span>
                                                 Title
                                             </th>
                                             <th scope="col"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
                                                 Slug
                                             </th>
-                                            <th scope="col"
+                                            <th scope="col" @click="handleSort('created_at')"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+                                                <span v-if="sorting.column === 'created_at'">{{ sorting.order === 'asc' ?
+                                                    '▲' :
+                                                    '▼' }}</span>
                                                 Created_at
                                             </th>
                                             <th scope="col"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
                                                 Updated_at
                                             </th>
-                                            <th scope="col" v-if="showTrash"
+                                            <th scope="col" v-if="showTrash" @click="handleSort('deleted_at')"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+                                                <span v-if="sorting.column === 'deleted_at'">{{ sorting.order === 'asc' ?
+                                                    '▲' : '▼' }}</span>
                                                 Deleted_at
                                             </th>
 
@@ -389,7 +405,8 @@ onMounted(() => {
 
 
 
-                                    <ModalComfirm v-if="showModal" @close="closeModal" @accept="deleteCategory, forceDelete">
+                                    <ModalComfirm v-if="showModal" @close="closeModal"
+                                        @accept="deleteCategory, forceDelete">
                                         <template #title>
                                             Delte Category {{ selectedCategoryTitle }}
                                         </template>
@@ -403,7 +420,7 @@ onMounted(() => {
                                             <fwb-button v-if="!showTrash" color="pink"
                                                 @click="acceptDelete()">Accept</fwb-button>
                                             <fwb-button v-if="showTrash" color="pink"
-                                                @click="acceptForceDelete()">Accepttt</fwb-button>
+                                                @click="acceptForceDelete()">Accept</fwb-button>
 
                                         </template>
                                     </ModalComfirm>
@@ -445,4 +462,5 @@ onMounted(() => {
             </div>
         </template>
 
-    </AdminLayout></template>
+    </AdminLayout>
+</template>

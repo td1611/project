@@ -20,7 +20,7 @@ class CategoryResource extends JsonResource
             'slug' => $this->slug,
             'created_at' => format_datetime($this->created_at),
             'updated_at' => format_datetime($this->updated_at),
-            'deleted_at' => format_datetime($this->deleted_at),
+            "deleted_at" =>  $this->deleted_at ?  format_datetime($this->deleted_at) : null,
         ];
     }
 }

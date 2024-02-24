@@ -32,15 +32,36 @@ class CategoryController extends Controller
 
     function getCategories(Request $request)
     {
-
         $limit = $request->limit ? $request->limit : 10;
-        $categories = $this->category->filter($request->all())->latest('id')->paginate($limit);
+        $query = $this->category->filter($request->all());
+
         if ($request->status == 'trashed') {
-            $categories  = $this->category->filter($request->all())->onlyTrashed()->latest('id')->paginate($limit);
+            $query->onlyTrashed();
         }
 
+        if (!($this->requestColumnAndOrder($request))) {
+            $query->latest('title');
+        }
+        // sort Column
+        $this->sortData($request, $query);
+        $categories = $query->paginate($limit);
         return CategoryResource::collection($categories);
     }
+
+    function sortData($request, $query)
+    {
+        if ($this->requestColumnAndOrder($request)) {
+            $validColumns = ['id', 'title', 'created_at', 'deleted_at'];
+            if (in_array($request->sortColumn, $validColumns)) {
+                return  $query->orderBy($request->sortColumn, $request->order);
+            }
+        }
+    }
+
+    function requestColumnAndOrder($request) {
+       return  $request->has('sortColumn') && $request->has('order');
+    }
+
 
     /**
      * Show the form for creating a new resource.

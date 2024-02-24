@@ -18,7 +18,7 @@ const form = useForm({
 async function submit() {
     try {
         const response = await axios.post(route('admin.categories.store'), form);
-        console.log(response);
+        console.log(response.data);
         form.reset();
         ElNotification({
             title: 'Success',
@@ -28,7 +28,7 @@ async function submit() {
         })
 
     } catch (error) {
-
+        console.log(error.response.data);
         ElMessage({
             showClose: true,
             message: error.response.data.message,

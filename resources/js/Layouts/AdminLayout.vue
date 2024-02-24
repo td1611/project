@@ -1,7 +1,7 @@
 <script setup>
 import { FwbSidebar, FwbSidebarItem, FwbSidebarDropdownItem } from 'flowbite-vue'
 import { ref } from 'vue';
-import { Head,  router } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 
 defineProps({
     title: String,

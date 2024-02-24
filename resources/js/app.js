@@ -22,11 +22,11 @@ createInertiaApp({
         return createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
-            .use(ElementPlus)
             .component("Link", Link)
+            .use(ElementPlus)
             .mount(el);
     },
-   
+
     progress: {
         color: "#4B5563",
     },
