@@ -11,6 +11,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryController extends Controller
 {
@@ -58,8 +59,9 @@ class CategoryController extends Controller
         }
     }
 
-    function requestColumnAndOrder($request) {
-       return  $request->has('sortColumn') && $request->has('order');
+    function requestColumnAndOrder($request)
+    {
+        return  $request->has('sortColumn') && $request->has('order');
     }
 
 
@@ -80,13 +82,24 @@ class CategoryController extends Controller
         $validatedData = $request->validated();
         try {
             $validatedData['slug'] = Str::slug($validatedData['title']);
+            // handle uploadImg
+            $validatedData['image'] = $this->upLoadImg($request->file('image'),  $validatedData['slug']);
             // store
             $category = $this->category->create($validatedData);
+            // return response()->json(CategoryResource::make($category), 200, ['Content-type' => 'application/json; charset=utf-8'], JSON_UNESCAPED_UNICODE);
             return $this->responseHelper->sendSuccessResponse(CategoryResource::make($category), ('Success Create'));
         } catch (\Exception $e) {
             return $this->responseHelper->sendErrorResponse(('Something went wrong.'), $e->getMessage());
         }
     }
+
+    function upLoadImg($image, $slug)
+    {
+        $fileName = $slug . '-' . time() . '.' . strtolower($image->getClientOriginalExtension());
+        $path = $image->storeAs('public/categories', $fileName);
+        return "categories/" . $fileName;
+    }
+
 
     /**
      * Display the specified resource.
@@ -122,15 +135,29 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
+
+    function handleUpdateImg($record, $newImage, $slug)
+    {
+        if (!empty($newImage)) {
+            $img_old = $record->image;
+            Storage::delete($img_old);
+        }
+        $fileName = $slug . '-' . time() . '.' . strtolower($newImage->getClientOriginalExtension());
+        $path = $newImage->storeAs('public/categories', $fileName);
+        return "categories/" . $fileName;
+    }
+
     public function update(CategoryRequest $request, string $id)
     {
         $category = $this->category->find($id);
         if (!$category) {
-            return  $this->responseHelper->sendErrorResponse(__('Data not found'), "update category error", 404);
+            throw new \Exception($this->responseHelper->sendErrorResponse(__('Data not found'), "update category error", 404));
         }
         $validatedData =  $request->validated();
         try {
             $validatedData['slug'] = Str::slug($validatedData['title']);
+            //  handleUpdateImg
+            $validatedData['image'] = $this->handleUpdateImg($category, $request->file('image'), $validatedData['slug']);
             // update
             $category->update($validatedData);
 

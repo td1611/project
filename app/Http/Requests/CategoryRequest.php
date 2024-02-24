@@ -28,6 +28,7 @@ class CategoryRequest extends FormRequest
                 'required', 'string', 'max:255',
                 Rule::unique('categories')->ignore($this->route('category'), 'id'),
             ],
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,bmp',
 
         ];
     }

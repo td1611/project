@@ -310,6 +310,10 @@ onMounted(() => {
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
                                                 Slug
                                             </th>
+                                            <th scope="col"
+                                                class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+                                                Image
+                                            </th>
                                             <th scope="col" @click="handleSort('created_at')"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
                                                 <span v-if="sorting.column === 'created_at'">{{ sorting.order === 'asc' ?
@@ -317,10 +321,7 @@ onMounted(() => {
                                                     '▼' }}</span>
                                                 Created_at
                                             </th>
-                                            <th scope="col"
-                                                class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
-                                                Updated_at
-                                            </th>
+                                    
                                             <th scope="col" v-if="showTrash" @click="handleSort('deleted_at')"
                                                 class="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
                                                 <span v-if="sorting.column === 'deleted_at'">{{ sorting.order === 'asc' ?
@@ -356,12 +357,13 @@ onMounted(() => {
                                             </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
-                                                {{ category.created_at }}
+                                               <img :src="category.image" :alt="category.title">
                                             </td>
                                             <td
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
-                                                {{ category.updated_at }}
+                                                {{ category.created_at }}
                                             </td>
+                                      
                                             <td v-if="showTrash"
                                                 class="px-6 py-4 whitespace-nowrap text-sm text-gray-800 dark:text-gray-200">
                                                 {{ category.deleted_at }}
