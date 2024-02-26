@@ -23,14 +23,18 @@ class CategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rule =  [
             'title' => [
                 'required', 'string', 'max:255',
                 Rule::unique('categories')->ignore($this->route('category'), 'id'),
             ],
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,bmp',
-
         ];
+        if (request()->isMethod('post')) {
+            return $rule;
+        }
+        $rule['image'] = ['nullable',];
+        return $rule;
     }
 
     protected function prepareForValidation(): void

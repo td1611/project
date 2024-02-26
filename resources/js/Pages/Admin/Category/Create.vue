@@ -32,12 +32,12 @@ async function submit() {
         const formData = new FormData();
         formData.append('title', form.title);
 
-        // Kiểm tra nếu có hình ảnh thì thêm vào FormData
         if (form.image) {
             formData.append('image', form.image);
         }
         const response = await axios.post(route('admin.categories.store'), formData);
         console.log(response.data);
+        selectedImage.value = null
         form.reset();
         ElNotification({
             title: 'Success',
